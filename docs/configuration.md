@@ -23,6 +23,23 @@ found in file `lib/configuration.yaml`.
   big stake) to agree upon a seed which will be used for leaders
   selection for an epoch.
 
+## Command line options
+
+Almost all executables accept several options to specify
+configuration.
+* `--configuration-file` can be used to specify path to configuration
+file. Default value is `lib/configuration.yaml`.
+* `--configuration-key` specifies key in this configuration. Default
+  value is `default`.
+* `--system-start` specifies system start time as unix timestamp in
+  seconds. It must be provided if it's not available from
+  configuration and must not be provided otherwise. More details are
+  provided [below](#system-start-time).
+* `--configuration-seed` can be used to specify seed used to generate
+  secret data. It overrides `seed` value from `testnetInitializer`
+  (see below). In `testnetInitializer` isn't used, passing
+  `--configuration-seed` is prohibited.
+
 ## Genesis
 
 In Cardano-SL we need to specify which addresses initially have ADA
@@ -94,8 +111,8 @@ genesis data.
   genesis is supposed to be used for testing clusters. It's
   questionable whether it should be used for testnet and currently we
   can't use it for testnet for performance reasons. We don't use it
-  for mainnet (and we won't have other mainnets).
-  See [Genesis spec format](#genesis-spec-format) for details.
+  for mainnet.  See [Genesis spec format](#genesis-spec-format) for
+  details.
 
 ### Genesis data format
 
@@ -441,40 +458,11 @@ There are some tools relevant to genesis data.
 
 ### Generating genesis for testnet
 
-**TODO**: likely outdated.
-
-There is `testnet_public_full` configuration which is almost suitable
-for testnet. The only values to be changed are inside
-`testnetCustomStakeDistr`: `bootStakeholders` and `vssCerts`. They
-depend on secret keys of core nodes which shouldn't be publicly
-known. You need to generate secret keys and VSS certificates and put
-them into configuration. There is also `testnet_staging_full` which
-has different `k`, `protocolMagic` and some other values.
-
-To generate a secret key use `cardano-keygen --system-start 0
-generate-key --path <SECRET_KEY_PATH>`. Generate as many keys as there
-should be core nodes. Last line looks like this:
-
-> [keygen:INFO] Successfully generated primary key and dumped to secrets/testnet/node4.sk, stakeholder id: 39f2bb9fd75ac348e6c92467e61eb3e1418a394f5a2105f9e014b666, PK (base64): /fbQqCqUPdPImYA2djkGYMpj9HZGkDeKhTc/mLcPG7sdhJSR6Ou0sB3J5OII2VdWTXSHRM1cPdNwZsaNba4rcg==
-
-You should use stakeholder ids as keys in `bootStakeholders`
-map. Values are stakeholders' weights, having all weights equal to 1
-is fine.
-
-The second step is VSS certificates generation. Use `cardano-keygen
---system-start 0 --configuration-key testnet_public_full generate-vss
---path <SECRET_KEY_PATH>` to generate VSS certificate. This how it
-looks like:
-
-> JSON: key 75fc2050ea497eb615461d01170679d143fb70c07c0baf3db54c6237, value {"expiryEpoch":5,"signature":"b735325b8f21a033cbe3005c35e4397dd33168c62c05cc8f59e66efbcdeb36b5862d7a324def1ba10e4a79cf0e56c75568c84e6ca28b1a9bb5da65fc6a8cb002","signingKey":"4vHA0HXrmpD6VhhCe44CAJ8IHr9BKpCUtOmGRZu/39vRLJ1z2vJp8h+rdOqb7tJg7Uzf94x0NlM8xHgmhPBecg==","vssKey":"WCECml0Nc9bjjerxHGf2sDfKJIILyDKvjM8zCdfzBmYxcyU="}
-
-**IMPORTANT**: you must pass correct `--configuration-key`, because
-certificate validity depends on `protocolMagic`. So if you are
-generating certificates for staging, use `testnet_staging_full`
-instead.
-
-Put this data into `vssCerts` map. There should be as many VSS
-certificates as there are core nodes (i. e. do it for each secret).
+For testnet we can't use `spec` for genesis, at least because
+converting genesis spec to genesis data in currently very slow and we
+want to have thousands of HD addresses in testnet. For this reason
+it's necessary to generate a JSON file with genesis data
+first. Fortunately it can be done automatically from genesis spec.
 
 ### Generating genesis for mainnet
 
@@ -507,20 +495,6 @@ has the following values:
 
 **TODO**: describe the rest.
 
-## Command line options
-
-Almost all executables accept several options to specify
-configuration.
-* `--configuration-file` is used to specify path to configuration
-file.
-* `--configuration-key` specifies key in this configuration.
-* `--system-start` specifies system start time as unix timestamp in
-  seconds. It must be provided if it's not available from
-  configuration and must not be provided otherwise.
-* `--configuration-seed` can be passed to override `seed` value from
-  `testnetInitializer`. In `testnetInitializer` isn't used, passing
-  `--configuration-seed` is prohibited.
-
 ## Our configurations
 
 ### `mainnet` configurations
@@ -547,6 +521,11 @@ file for different keys.
   much shorter epoch.
 
 ### `internal_staging` configurations
+
+`internal_staging_gen` configuration is used to generate genesis data
+for `internal_staging`. Please
+see [Generating genesis for testnet](#generating-genesis-for-testnet)
+section for more details.
 
 `internal_staging_full` configuration can be used by full nodes in
 internal staging. It's
