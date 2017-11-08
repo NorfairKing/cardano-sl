@@ -441,20 +441,27 @@ more often, and it's easier to change this value from CLI.
 
 There are some tools relevant to genesis data.
 
-* `cardano-keygen` has a command to dump all secret keys and similar
-  data to files. Usage: `cardano-keygen --system-start 0
-  --configuration-file <file> --configuration-key <key>
+* `cardano-keygen` has a command to dump all genesis secrets to
+  files. Usage: `cardano-keygen --system-start 0 --configuration-file
+  <file> --configuration-key <key> --configuration-seed <seed>
   generate-keys-by-spec --genesis-out-dir <dir>`. This command will
-  generate and dump secrets to `<dir>`. To deploy a cluster you need keys
-  of core nodes. Just use `generate-keys-by-spec`
-  to obtain these keys if you have a spec with `testnetInitializer`.
+  generate and dump secrets to `<dir>`. To deploy a cluster you need
+  keys of core nodes. They can be found in
+  `<dir>/generated-keys/rich/`. It can be used only when genesis spec
+  with `testnetInitializer` is used.
 
-* `cardano-node-simple` and `cardano-node` have command line option to
-  dump genesis data (in JSON format). The option is
+* `cardano-keygen` also has command to dump genesis data (in JSON
+  format). Usage: `cardano-keygen --system-start SYSTEM_START
+  --configuration-file <file> --configuration-key <key>
+  --configuration-seed <seed> dump-genesis-data --path
+  <file>`. Default path is `genesis-data.json`. It can be used to
+  generate _genesis data_ from _genesis spec_ if you want it to be
+  used by nodes or just want to verify generated data.
+
+* `cardano-node-simple` and `cardano-node` also have command line option to
+  dump genesis data. The option is
   `--dump-genesis-data-to genesis.json` (data will be dumped to
-  `genesis.json`). It can be used to generate _genesis data_ from
-  _genesis spec_ if you want it to be used by nodes or just want to
-  verify generated data.
+  `genesis.json`).
 
 ### Generating genesis for testnet
 
@@ -463,6 +470,35 @@ converting genesis spec to genesis data in currently very slow and we
 want to have thousands of HD addresses in testnet. For this reason
 it's necessary to generate a JSON file with genesis data
 first. Fortunately it can be done automatically from genesis spec.
+
+1. You need to have a configuration which uses _genesis spec_ and
+   `testnetInitializer`. Let's assume it's in file `CONF_FILE` and its
+   key is `CONF_KEY`.
+2. Generate very big random integer. It can be as big as you
+   want. Let's call it `SEED`. You can use `python`, for example:
+   `python -c "import secrets; print(secrets.randbelow(2**256))"`.
+3. Figure out system start time. Ideally it should be set to exactly
+   the time when nodes are launched. In practice it's impossible. If
+   nodes are deployed before this time, they will just wait. There is
+   nothing bad, except that start is delayed. If nodes are deployed
+   after this time, some slots won't have blocks. If it's less than
+   `k` slots, it shouldn't be a big problem, blockchain won't be
+   dead, otherwise you should redeploy with another system
+   start. Let's call it `SYSTEM_START`.
+4. Run `cardano-keygen --system-start SYSTEM_START
+--configuration-file CONF_FILE --configuration-key CONF_KEY
+--configuration-seed CONF_SEED dump-genesis-data --path <file>`. Note:
+this step may take a lot of time.
+5. After step (4) you have `<file>` with genesis data. You can put it
+   into repository, change value of `file` and `hash` in configuration
+   to this file and its hash (computed using
+   `scripts/js/genesis-hash.js`.
+6. You also need to know secret keys of core nodes. Use
+   `cardano-keygen --system-start 0 --configuration-file CONF_FILE
+   --configuration-seed SEED --configuration-key CONF_KEY
+   generate-keys-by-spec --genesis-out-dir <dir>` as
+   described [above](#tools). Note: you can pass arbitrary
+   `system-start`, it doesn't matter.
 
 ### Generating genesis for mainnet
 
@@ -527,27 +563,12 @@ for `internal_staging`. Please
 see [Generating genesis for testnet](#generating-genesis-for-testnet)
 section for more details.
 
-`internal_staging_full` configuration can be used by full nodes in
-internal staging. It's
+`internal_staging_full` configuration is used by full nodes in
+internal staging. Currently it's a stub, because internal staging
+isn't deployed yet.
 
 `internal_staging_wallet_win64` and `internal_staging_wallet_macos64`
-are very similar configurations for wallets.
-
-**Obsolete**
-
-There are two configurations for testnets. They are ready to be used,
-except `bootStakeholders` and `vssCerts`. Testnet genesis preparation
-is described above. Bootstrap stakeholders and vss certificates in
-`lib/configuration.yaml` are derived from secret keys from
-`secrets/testnet/`. Since they are publicly avaiable, they shouldn't
-be used for real testnet. Note that `vssCerts` differ even though
-secret keys are same. That's because certificates validity depends on
-protocol magic.
-
-**Sketch**
-
-Workflow for testnet: modify `seed`, dump keys, figure out system
-start, dump genesis data, use it.
+are like `internal_staging_full`, but for wallets.
 
 ### `devnet` configuration
 
