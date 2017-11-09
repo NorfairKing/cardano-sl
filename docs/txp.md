@@ -30,7 +30,7 @@
 * You should know what a transaction is, its structure and about tx
   witnesses. You can read about it
   [here](https://cardanodocs.com/cardano/transactions/).
-* You also should about technical details about
+* You also should know technical details about
   [addresses](https://cardanodocs.com/cardano/addresses/).
 * Please read about
   [balances and stakes](https://cardanodocs.com/cardano/balance-and-stake/) and
@@ -64,14 +64,14 @@ transactions from these blocks are valid.
 
 The algorithm is similar to the one from Bitcoin (for example, UTXO is used to prevent
 double-spending), but is more complicated due to various reasons, including:
-  
+
 * Extendable (via update mechanism) data structures
 * Maintaining stakes in addition to balances
 
 
 We describe global txp as stateful algorithm:
 * Initial state `S₀` is derived from blockchain genesis data (see [mainnet genesis JSON](https://raw.githubusercontent.com/input-output-hk/cardano-sl/e7cfb1724024e0db2f25ddd2eb8f8f17c0bc497f/node/mainnet-genesis.json))
-* `S₁, S₂, …` are maintained as sequential application of blocks  `B₀, B₁, B₂, … ` to state `S₀`  
+* `S₁, S₂, …` are maintained as sequential application of blocks  `B₀, B₁, B₂, … ` to state `S₀`
 * State transition function. Given GState `S` and a main block `B` return either an error describing why `B` is invalid (w.r.t. tx payload) or new GState `S'`
   ```
   verifyAndApplyGState :: GState -> MainBlock -> Either TxPayloadVerificationError GState
@@ -108,18 +108,18 @@ In this section we describe parts of GState relevant to transaction processing (
      , txInIndex :: !Word32
      }
      | TxInUnknown !Word8 !ByteString
-     
+
   data TxOutAux = TxOutAux
      { toaOut   :: !TxOut
      -- ^ Tx output
      }
-     
-     
+
+
   type Utxo = Map TxIn TxOutAux
   ```
-  
+
   * UTXO is a map from `TxIn` to
-  `TxOutAux` ([code](https://github.com/input-output-hk/cardano-sl/blob/e7cfb1724024e0db2f25ddd2eb8f8f17c0bc497f/txp/Pos/Txp/Toil/Types.hs#L58)) which contains all unspent outputs.  
+  `TxOutAux` ([code](https://github.com/input-output-hk/cardano-sl/blob/e7cfb1724024e0db2f25ddd2eb8f8f17c0bc497f/txp/Pos/Txp/Toil/Types.hs#L58)) which contains all unspent outputs.
   * `TxOutAux` is just an alias for `TxOut` ([code](https://github.com/input-output-hk/cardano-sl/blob/e7cfb1724024e0db2f25ddd2eb8f8f17c0bc497f/txp/Pos/Txp/Core/Types.hs#L160)). Later it can be extended if we want to associate
   more data with unspent outputs (e. g. slot of the block in which
   this transaction appeared).
@@ -138,9 +138,9 @@ In this section we describe parts of GState relevant to transaction processing (
   This data type ([code](https://github.com/input-output-hk/cardano-sl/blob/e7cfb1724024e0db2f25ddd2eb8f8f17c0bc497f/core/Pos/Core/Types.hs#L318)) contains various
   parameters of the algorithm
   which can be updated by Update System (details are not covered in this document).
-  
+
   Txp doesn't modify this value, it only reads it.
-  
+
   Some values are relevant for transaction processing:
   * `maxTxSize` – maximal size of a transaction.
   * `scriptVersion` – determines the rules which should be used to
@@ -282,23 +282,23 @@ We require:
 
 Note: signature inside witness is given for `TxSigData` (which is basically the same as `Hash Tx`)
   with `SignTx` tag.
-  
+
 Note (\*): even though address doesn't contain its spending data, it's easy
 to check whether given spending data corresponds to given
 address. Suppose we have an address `addr` and spending data
 `asd`. Let's say that `addr` has attributes `attrs` and type `t`. We
 can construct `Address'` from `attrs`, `t` and `asd` and compare its
 hash with the one from `addr`.
-  
+
 ###### Script witness
 
 Witness `ScriptWitness` contains:
-  
+
 * validator script, `validator`
 * redeemer script, `redeemer`
 
 We require:
-  
+
 * Address is a `Script` address
 * Address spending data is created with validator script same as `validator`
 * Both `redeemer` and `validator` scripts have the same version.
@@ -318,7 +318,7 @@ Witness `PkWitness` contains:
 We require:
 
 
-* Address is a `Redeem` address 
+* Address is a `Redeem` address
 * Address spending data is created with redeem public key `pk`
 * Signature `sig` is a valid signature of transaction (validity checked with `pk`)
 
@@ -328,7 +328,7 @@ We require:
 * If `verifyAllIsKnown` is `True`, witness is invalid
 * If witness has unknown type with tag `t`, corresponding address must
   have unknown type with tag `t`
- 
+
 ##### Sums check
 
 This check is omitted if (and only if):
@@ -456,4 +456,3 @@ There are few differences between local txp and global txp:
 Note that local transaction processing is basically an implementation
 detail and other nodes can do it differently. For example, a node can
 always reject all transactions and never relay them.
- 
