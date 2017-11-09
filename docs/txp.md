@@ -91,7 +91,9 @@ For sake of simplicity, we describe state transition function in two parts:
 
 ### GState
 
-In this section we describe parts of GState relevant to transaction processing (GState is an actual structure in code used by few more components).
+In this section we describe parts of GState relevant to transaction
+processing (GState is an actual structure in code used by few more
+components).
 
 * UTXO (unspent transaction outputs)
   ```
@@ -212,8 +214,14 @@ unparsed fields must be empty.
 
 ### Verification
 
-As stated above, we want to verify block `B` validity against GState `S`.
-To do so, each transaction from block's transaction payload is taken separately (in order of inclusion into block) and considered against `S`.
+As stated above, we want to verify block `B` validity against GState
+`S`.  To do so, each transaction from block's transaction payload is
+taken separately (in order of inclusion into block) and considered
+against `S`. If transaction is considered valid, GState is
+temporarily [updated](#gstate-modification) and the next transaction
+is verified according to new GState. If transaction is considered
+invalid, all temporary modifications are discarded. If all
+transactions are valid, temporary modifications are committed.
 
 Let's assume that version comparison as described at the end of previos section (Unknown data handling) is done.
 Let's denote flag `verifyAllIsKnown` and assign it value:
@@ -236,6 +244,10 @@ invalid.
 output addresses must have `BootstrapEraDistr` distribution
   - Predicate "was created during bootstrap era" is checked with block's slot field
     and adopted `BlockVersionData` (which contains data which slot is defined last for bootstrap era)
+
+Also there is a check which applies to whole `TxPayload`:
+
+- Number of transactions must be the same as number of `TxWitness`es.
 
 #### Outputs checks
 
