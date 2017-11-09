@@ -260,9 +260,12 @@ For each output address we perform the following checks:
 
 For each input `i` we perform:
 
-- *Inputs known check*: if `verifyAllIsKnown` is `True`, type of input `i` should be known
+- *Inputs known check*: if `verifyAllIsKnown` is `True`, type of input
+  `i` should have known type
 - *UTXO check*: If input `i` is of type `TxInUtxo`, it should have corresponding record in UTXO
-- *Difference check*: input `i` must be different from all other inputs in transaction
+- *Difference check*: input `i` must be different from all other
+  inputs in transaction. This check is performed only if all inputs
+  have known type.
 
 In addition we perform number of consolidated checks (checks which consider whole set of inputs):
 
@@ -276,6 +279,9 @@ Witness check for any type is two-fold:
 
 * check that witness corresponds to the address of corresponding input
 * check witness is correct
+
+Witness checks are omitted if (and only if):
+* There is an unknown transaction input.
 
 We describe checks for each type in folowing sections.
 
