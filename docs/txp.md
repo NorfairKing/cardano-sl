@@ -290,10 +290,13 @@ We require:
 
 * Address is a `PubKey` address
 * Address spending data is created with public key `pk` (\*)
-* Signature `sig` is a valid signature of transaction (validity checked with `pk`)
-
-Note: signature inside witness is given for `TxSigData` (which is basically the same as `Hash Tx`)
-  with `SignTx` tag.
+* Signature `sig` is a valid signature of transaction (validity
+  checked with `pk`). Signature inside witness must be given for
+  `TxSigData` (which is basically the same as `Hash Tx`) with `SignTx`
+  tag. The sequence of bytes to sign is: `01 <magic> HASH_CBOR`, where
+  `01` is just one byte, `<magic>` is CBOR-encoded 32-bits constant
+  number which differs for mainnet, testnet and other deployments,
+  `HASH_CBOR` is the has of `Tx` we verify.
 
 Note (\*): even though address doesn't contain its spending data, it's easy
 to check whether given spending data corresponds to given
@@ -333,7 +336,12 @@ We require:
 
 * Address is a `Redeem` address
 * Address spending data is created with redeem public key `pk`
-* Signature `sig` is a valid signature of transaction (validity checked with `pk`)
+* Signature `sig` is a valid signature of transaction (validity
+  checked with `pk`) As in public key witness, signature inside redeem
+  witness must be given for `TxSigData` (which is basically the same
+  as `Hash Tx`). `SignRedeemTx` tag should be. The sequence of bytes
+  to sign is: `02 <magic> HASH_CBOR` (it differs
+  from [Public key witness](#public-key-witness) in only one byte).
 
 
 ###### Unknown witness
