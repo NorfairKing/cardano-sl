@@ -304,7 +304,8 @@ We require:
 * Both `redeemer` and `validator` scripts have the same version.
 * If `verifyAllIsKnown` is `True`, script version (which is same for
     redeemer and validator) must be known.
-    - For CSL 1.0 it means that version must be equal to 0, it's the only version known to our software.
+    - For Cardano SL 1.0 it means that version must be equal to 0,
+      it's the only version known to our software.
 * Plutus validation script built from redeemer and validator for
     given tx must return `True`
 
@@ -354,7 +355,7 @@ For this check we know:
 * Currently adopted tx fee policy (as part of `BlockVersionData`), which is of known type
 
 ###### Size-linear policy
-Only policy supported by CSL v1.0 is `TxFeePolicyTxSizeLinear`.
+Only policy supported by Cardano SL v1.0 is `TxFeePolicyTxSizeLinear`.
 
 For it, we need to compute minimal required fee for this transaction.
 This value is computed using fixed-precision arithmetic (precision is 1e-9) using formula:
