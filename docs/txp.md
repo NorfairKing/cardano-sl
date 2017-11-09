@@ -296,7 +296,7 @@ We require:
   tag. The sequence of bytes to sign is: `01 <magic> HASH_CBOR`, where
   `01` is just one byte, `<magic>` is CBOR-encoded 32-bits constant
   number which differs for mainnet, testnet and other deployments,
-  `HASH_CBOR` is the has of `Tx` we verify.
+  `HASH_CBOR` is the hash of `Tx` we verify.
 
 Note (\*): even though address doesn't contain its spending data, it's easy
 to check whether given spending data corresponds to given
@@ -358,7 +358,8 @@ This check is omitted if (and only if):
 For each input and output we know its value (i.e. associated balance). We compute sum of all inputs and all outputs.
 
 * If sum of outputs is greater than sum of inputs, tx is considered invalid
-* Otherwise, check succeeds, difference between sum of inputs and sum of outputs is considered to be *transaction fee*.
+* Otherwise, check succeeds, difference between sum of inputs and sum
+  of outputs is considered to be *transaction fee*.
 
 ##### Transaction fee check
 
