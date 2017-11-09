@@ -49,7 +49,7 @@ corresponding state when blocks are applied/rolled back. Local
 transaction processing checks standalone transactions and updates
 local mempool. These two parts have almost same logic with a few
 differences. We first describe global transaction processing and then
-describes how local transaction processing differs from it.
+describe how local transaction processing differs from it.
 
 Transaction processing is abbreviated to `txp` in code and some other
 places.
