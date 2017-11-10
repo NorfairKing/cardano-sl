@@ -87,6 +87,9 @@ cborCanonicalRep a = counterexample (show a) . property $ do
     sa' <- R.serialise <$> perturbCanonicity (R.deserialise sa)
     pure $ sa == sa' || isLeft (decodeFull @a $ BSL.toStrict sa')
 
+encodeSucceeds :: Bi a => a -> Property
+encodeSucceeds a = deepseq (serialize a) () === ()
+
 safeCopyEncodeDecode :: (Show a, Eq a, SafeCopy a) => a -> Property
 safeCopyEncodeDecode a =
     either (error . toText) identity
@@ -123,6 +126,7 @@ binaryTest :: forall a. IdTestingRequiredClasses Bi a => Spec
 binaryTest =
     identityTestSpec @a $ do
       prop "binary encode and decode are inverses" $ binaryEncodeDecode @a
+      prop "binary encode succeeds" $ encodeSucceeds @a
       prop "performs flat encoding" $ cborFlatTermValid @a
       prop "has cbor canonical representation" $ cborCanonicalRep @a
 
