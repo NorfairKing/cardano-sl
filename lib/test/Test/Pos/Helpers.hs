@@ -6,6 +6,8 @@ module Test.Pos.Helpers
        -- * From/to
          binaryEncodeDecode
        , binaryTest
+       , encodeSucceeds
+       , decodeDoesNotCrash
        , safeCopyEncodeDecode
        , safeCopyTest
        , serDeserId
@@ -90,6 +92,11 @@ cborCanonicalRep a = counterexample (show a) . property $ do
 encodeSucceeds :: Bi a => a -> Property
 encodeSucceeds a = deepseq (serialize a) () === ()
 
+decodeDoesNotCrash :: forall a. Bi a => ByteString -> Property
+decodeDoesNotCrash bs = case decodeFull @a bs of
+    Left err -> deepseq err () === ()
+    Right res -> seq res () === ()
+
 safeCopyEncodeDecode :: (Show a, Eq a, SafeCopy a) => a -> Property
 safeCopyEncodeDecode a =
     either (error . toText) identity
@@ -127,6 +134,7 @@ binaryTest =
     identityTestSpec @a $ do
       prop "binary encode and decode are inverses" $ binaryEncodeDecode @a
       prop "binary encode succeeds" $ encodeSucceeds @a
+      prop "binary decode does not crash" $ decodeDoesNotCrash @a
       prop "performs flat encoding" $ cborFlatTermValid @a
       prop "has cbor canonical representation" $ cborCanonicalRep @a
 
