@@ -1,5 +1,6 @@
 -- | This module tests Binary instances.
 
+{-# LANGUAGE AllowAmbiguousTypes #-}
 module Test.Pos.BinarySpec
        ( spec
        ) where
@@ -10,6 +11,10 @@ import           Data.Fixed            (Nano)
 import           Data.Time.Units       (Microsecond, Millisecond)
 import           Serokell.Data.Memory.Units (Byte)
 import           Numeric               (showHex)
+
+import qualified Codec.CBOR.Encoding   as E
+import qualified Codec.CBOR.Read       as CBOR.Read
+import qualified Codec.CBOR.Write      as CBOR.Write
 
 import           Test.Hspec            (Spec, anyErrorCall, describe, it, shouldBe,
                                         shouldSatisfy, xdescribe)
@@ -51,6 +56,27 @@ spec = describe "Bi" $ modifyMaxSuccess (const 10000) $ do
         binaryTest @(HashMap Int Int)
         binaryTest @(Set Int)
         binaryTest @(HashSet Int)
+        describe "explosions" $ do
+          things @()
+          things @Int
+          things @[()]
+          things @[[()]]
+
+things :: forall a. (Ord a, B.Bi a, NFData a) => Spec
+things = do
+  thing @[a]
+  thing @[Vector a]
+  thing @[Map a Int]
+
+thing :: forall a. (B.Bi a, NFData a) => Spec
+thing =
+  prop "does not go crazy" $ \rest ->
+    let bs = CBOR.Write.toLazyByteString $
+          E.encodeListLen (2^(25 ::Int)) <> E.encodeBytes rest
+        decoded = CBOR.Read.deserialiseFromBytes B.decode bs
+    in case decoded of
+          Left (CBOR.Read.DeserialiseFailure bof s) -> deepseq (bof, s) () `shouldBe` ()
+          Right (extra, r) -> deepseq (extra, r :: a) () `shouldBe` ()
 
 unsignedVarIntSpec :: Spec
 unsignedVarIntSpec = describe "UnsignedVarInt" $ do
